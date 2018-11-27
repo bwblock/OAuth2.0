@@ -9,6 +9,7 @@ keys/
 .pytest_cache/
 .coverage
 htmlcov/
+restaurantmenu.db
 
 dist/
 build/
