@@ -12,6 +12,9 @@ from database_setup import Base, Restaurant, MenuItem
 
 from flask import session as login_session
 import random, string
+import connect
+app.register_blueprint(connect.bp)
+
 
 
 #Connect to Database and create database session
@@ -22,12 +25,6 @@ DBSession = sessionmaker(bind=engine)
 session = DBSession()
 
 
-@app.route('/login')
-def showLogin():
-    state = ''.join(random.choice(string.ascii_uppercase + string.digits) for x in range(32))
-    login_session['state'] = state
-    #return "The session state is {}".format (login_session['state'])
-    return render_template('login.html')
 
 
 #JSON APIs to view Restaurant Information
@@ -49,12 +46,17 @@ def restaurantsJSON():
     return jsonify(restaurants= [r.serialize for r in restaurants])
 
 
+
 #Show all restaurants
 @app.route('/')
 @app.route('/restaurant/')
 def showRestaurants():
+
+  uid = False
+  if 'user_id' in login_session:
+      uid = login_session['user_id']
   restaurants = session.query(Restaurant).order_by(asc(Restaurant.name))
-  return render_template('restaurants.html', restaurants = restaurants)
+  return render_template('restaurants.html', restaurants = restaurants, user_id=uid)
 
 #Create a new restaurant
 @app.route('/restaurant/new/', methods=['GET','POST'])
@@ -97,9 +99,12 @@ def deleteRestaurant(restaurant_id):
 @app.route('/restaurant/<int:restaurant_id>/')
 @app.route('/restaurant/<int:restaurant_id>/menu/')
 def showMenu(restaurant_id):
+    uid = False
+    if 'user_id' in login_session:
+       uid = login_session['user_id']
     restaurant = session.query(Restaurant).filter_by(id = restaurant_id).one()
     items = session.query(MenuItem).filter_by(restaurant_id = restaurant_id).all()
-    return render_template('menu.html', items = items, restaurant = restaurant)
+    return render_template('menu.html', items = items, restaurant = restaurant, user = uid)
 
 
 
