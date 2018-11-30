@@ -42,7 +42,7 @@ def getUserID(email):
 def showLogin():
     state = ''.join(random.choice(string.ascii_uppercase + string.digits) for x in range(32))
     login_session['state'] = state
-    #return "The session state is {}".format (login_session['state'])
+    print ("The session state is {}".format (login_session['state']))
     return render_template('login.html', STATE=state)
 
 
@@ -74,7 +74,7 @@ def gconnect():
     # Check that the access token is valid.
     access_token = credentials.access_token
     print ('in gconnect, access token is {}'.format(access_token))
-    url = ('https://www.googleapis.com/oauth2/v2/tokeninfo?access_token='+access_token)
+    url = ('https://www.googleapis.com/oauth2/v1/tokeninfo?access_token='+access_token)
     h = httplib2.Http()
     result = json.loads(h.request(url, 'GET')[1])
     # If there was an error in the access token info, abort.
@@ -111,7 +111,7 @@ def gconnect():
     login_session['gplus_id'] = gplus_id
 
     # Get user info
-    userinfo_url = "https://www.googleapis.com/oauth2/v2/userinfo"
+    userinfo_url = "https://www.googleapis.com/oauth2/v1/userinfo"
     params = {'access_token': credentials.access_token, 'alt': 'json'}
     answer = requests.get(userinfo_url, params=params)
 
@@ -128,6 +128,7 @@ def gconnect():
     # see if user exists, if it doesn't make a new one
 
     #user_id = getUserID(data["email"])
+
     user_id = data['id']
     if not user_id:
         user_id = createUser(login_session)
@@ -146,6 +147,47 @@ def gconnect():
 
     print ("done!")
     return output
+
+
+@bp.route('/gdisconnect')
+def gdisconnect():
+    code = request.data
+
+    credentials = login_session.get('credentials')
+
+    if credentials is None:
+        response = make_response(json.dumps('Current user not connected.'), 401)
+        response.headers['Content-Type'] = 'application/json'
+        return response
+    access_token = credentials.access_token
+    print ('In gdisconnect access token is %s' % access_token)
+    print ('User name is: ')
+    print (login_session['username'])
+
+    if access_token is None:
+ 	    print ('Access Token is None')
+ 	    response = make_response(json.dumps('Current user not connected.'), 401)
+ 	    response.headers['Content-Type'] = 'application/json'
+ 	    return response
+
+    url = 'https://accounts.google.com/o/oauth2/revoke?token=%s' % access_token
+    h = httplib2.Http()
+    result = h.request(url, 'GET')[0]
+    if result['status'] == '200':
+        del login_session['credentials']
+        del login_session['gplus_id']
+        del login_session['username']
+        del login_session['email']
+        del login_session['picture']
+        response = make_response(json.dumps('Successfully disconnected.'), 200)
+        response.headers['Content-Type'] = 'application/json'
+        flash("you are successfully logged out.")
+        return redirect(url_for('showRestaurants'))
+    else:
+        response = make_response(json.dumps('Failed to revoke token for given user.', 400))
+        response.headers['Content-Type'] = 'application/json'
+        return response
+
 
 
 # DISCONNECT - Revoke a current user's token and reset their login_session
