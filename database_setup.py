@@ -1,9 +1,12 @@
+import os
+import sys
 from sqlalchemy import Column, ForeignKey, Integer, String
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 from sqlalchemy import create_engine
 
 Base = declarative_base()
+
 
 
 class User(Base):
@@ -25,7 +28,7 @@ class Restaurant(Base):
 
     @property
     def serialize(self):
-        """Return object data in easily serializeable format"""
+
         return {
             'name': self.name,
             'id': self.id,
@@ -45,9 +48,12 @@ class MenuItem(Base):
     user_id = Column(Integer, ForeignKey('user.id'))
     user = relationship(User)
 
+# We added this serialize function to be able to send JSON objects in a
+# serializable format
+
     @property
     def serialize(self):
-        """Return object data in easily serializeable format"""
+
         return {
             'name': self.name,
             'description': self.description,
@@ -56,8 +62,14 @@ class MenuItem(Base):
             'course': self.course,
         }
 
+    def serialize_rest(self):
+
+        return {
+            'name': self.name,
+            'id': self.id,
+        }
+
 
 engine = create_engine('sqlite:///restaurantmenuwithusers.db')
-
 
 Base.metadata.create_all(engine)

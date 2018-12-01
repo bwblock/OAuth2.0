@@ -1,25 +1,20 @@
-{% extends "main.html" %}
-{% block content %}
-{% include "header.html" %}
-	<div class="row top-menu">
-		<div class="col-md-10"></div>
-		<div class="col-md-2 text-right">
-					</div>
-	</div>
-	<div class="row divider blue">
-		<div class="col-md-12"></div>
-	</div>
-	<div class="row banner main">
-		<div class="col-md-1"></div>
-		<div class="col-md-11 padding-none">
-			<h1>Restaurants</h1>
-		</div>
-	</div>
+<html>
+
+<head>
+<link rel=stylesheet type=text/css href="{{ url_for('static', filename='styles.css') }}">
+	</head>
+
+<body>
+<div class = 'pane'>
+<h1>Restaurants</h1>
+
+{% if loginflag: %}
+<a href="{{url_for('newRestaurant')}}" > <h3> Create a New Restaurant </h3> </a>
+{% endif %}
 
 <div class = 'flash'>
 		      {% with messages = get_flashed_messages() %}
       {% if messages %}
-
         <ul>
         {% for message in messages %}
             <li> <strong> {{ message }} </strong> </li>
@@ -27,33 +22,31 @@
         </ul>
         {% endif %}
     {% endwith %}
-</div>
 
-{% if user_id %}
+    </div>
 
-	<div class="row padding-top padding-bottom">
-		<div class="col-md-1"></div>
-		<div class="col-md-10 padding-none">
-			<a href="{{url_for('newRestaurant')}}">
-				<button class="btn btn-default" id="new-restaurant">
-					<span class="glyphicon glyphicon-cutlery" aria-hidden="true"></span>Add Restaurant
-				</button>
-			</a>
-		</div>
-		<div class="col-md-1"></div>
-	</div>
+{% for r in restaurants %}
+
+<h2><a href = "{{url_for('showMenu', restaurant_id = r.id)}}"> <p>{{r.name}}</p></a></h2>
+
+{% if loginflag: %}
+
+<p><a href = "{{url_for('editRestaurant',restaurant_id = r.id)}}">Edit Restaurant</a></p>
+
+<p> <a href = "{{url_for('deleteRestaurant',restaurant_id = r.id) }}">Delete Restaurant</a> </p>
 {% endif %}
-<br>
 
-	{% for restaurant in restaurants %}
-		<a href = "{{url_for('showMenu', restaurant_id = restaurant.id)}}">
-			<div class="row">
-				<div class="col-md-1"></div>
-					<div class="col-md-10 restaurant-list">
-						<h3>{{restaurant.name}}</h3>
-					</div>
-				<div class="col-md-1"></div>
-			</div>
-		</a>
-	{% endfor %}
-{% endblock %}
+{% endfor %}
+
+{% if not loginflag: %}
+
+<p> <h2><a href = "{{url_for('showLogin') }}">Log In</a> </p></h2>
+
+{% else: %}
+<h2><p> <a href = "{{url_for('gdisconnect') }}">Log Out</a> </p></h2>
+
+{% endif %}
+
+</body>
+
+</html>

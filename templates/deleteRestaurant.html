@@ -1,17 +1,23 @@
-{% extends "main.html" %}
-{% block content %}
-{% include "header.html" %}
-<h2> Are you sure you want to delete {{restaurant.name}}? </h2>
+<html>
 
-<form action="#" method = 'post'>
+<head>
+<link rel=stylesheet type=text/css href="{{ url_for('static', filename='styles.css') }}">
+	</head>
 
-	<button type="submit" class="btn btn-default delete" id="submit" type="submit">
-	<span class="glyphicon glyphicon-trash" aria-hidden="true"></span>Delete</button>
-	<a href = '{{url_for('showRestaurants')}}'>
-		<button class="btn btn-default delete">
-		<span class="glyphicon glyphicon-remove" aria-hidden="true"></span> Cancel</button>
-	</a>
+<body>
+
+<h1> Are you sure you want to delete {{restaurant}}? </h1>
+
+
+<form action="#" method = 'POST'>
+
+<input type='submit', value = 'Delete'>
+
+
 
 </form>
 
-{% endblock %}
+<a href = '{{ url_for('showRestaurants') }}'> Cancel </a>
+</body>
+
+</html>
