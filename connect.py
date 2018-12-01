@@ -74,7 +74,8 @@ def gconnect():
     # Check that the access token is valid.
     access_token = credentials.access_token
     print ('in gconnect, access token is {}'.format(access_token))
-    url = ('https://www.googleapis.com/oauth2/v1/tokeninfo?access_token='+access_token)
+    url = ('https://www.googleapis.com/oauth2/v1/tokeninfo?access_token=%s'
+           % access_token)
     h = httplib2.Http()
     result = json.loads(h.request(url, 'GET')[1])
     # If there was an error in the access token info, abort.
@@ -122,12 +123,13 @@ def gconnect():
 
     login_session['username'] = data['name']
     login_session['picture'] = data['picture']
+    login_session['email'] = "dummy@gmail.com"
 
     #login_session['id'] = data['id']
 
     # see if user exists, if it doesn't make a new one
 
-    #user_id = getUserID(data["email"])
+    user_id = getUserID(data["id"])
 
     user_id = data['id']
     if not user_id:
@@ -149,6 +151,8 @@ def gconnect():
     return output
 
 
+# DISCONNECT - Revoke a current user's token and reset their login_session
+
 @bp.route('/gdisconnect')
 def gdisconnect():
     code = request.data
@@ -159,7 +163,7 @@ def gdisconnect():
         response = make_response(json.dumps('Current user not connected.'), 401)
         response.headers['Content-Type'] = 'application/json'
         return response
-    access_token = credentials.access_token
+    access_token = login_session['credentials']
     print ('In gdisconnect access token is %s' % access_token)
     print ('User name is: ')
     print (login_session['username'])
@@ -175,7 +179,7 @@ def gdisconnect():
     result = h.request(url, 'GET')[0]
     if result['status'] == '200':
         del login_session['credentials']
-        del login_session['gplus_id']
+        del login_session['user_id']
         del login_session['username']
         del login_session['email']
         del login_session['picture']
@@ -184,11 +188,10 @@ def gdisconnect():
         flash("you are successfully logged out.")
         return redirect(url_for('showRestaurants'))
     else:
-        response = make_response(json.dumps('Failed to revoke token for given user.', 400))
+        response = make_response(json.dumps('Failed to revoke token for given user.'), 400)
         response.headers['Content-Type'] = 'application/json'
         return response
 
 
 
-# DISCONNECT - Revoke a current user's token and reset their login_session
 
