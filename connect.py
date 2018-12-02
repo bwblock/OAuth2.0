@@ -9,33 +9,11 @@ import httplib2
 import json
 from flask import make_response
 import requests, random, string
+import project
 
 CLIENT_ID = json.loads(open('./keys/client_secrets.json', 'r').read())['web']['client_id']
 
 bp = Blueprint('connect', __name__)
-
-# ----------------------  User Helper Functions ----------------------------#
-
-def createUser(login_session):
-    newUser = User(name=login_session['username'], email=login_session[
-                   'email'], picture=login_session['picture'])
-    session.add(newUser)
-    session.commit()
-    user = session.query(User).filter_by(email=login_session['email']).one()
-    return user.id
-
-
-def getUserInfo(user_id):
-    user = session.query(User).filter_by(id=user_id).one()
-    return user
-
-
-def getUserID(email):
-    try:
-        user = session.query(User).filter_by(email=email).one()
-        return user.id
-    except:
-        return None
 
 
 @bp.route('/login')
@@ -124,16 +102,15 @@ def gconnect():
     login_session['username'] = data['name']
     login_session['picture'] = data['picture']
     login_session['email'] = "dummy@gmail.com"
-
-    #login_session['id'] = data['id']
+    login_session['user_id'] = data['id']
 
     # see if user exists, if it doesn't make a new one
 
-    user_id = getUserID(data["id"])
+    user_id = project.getUserID(data["id"])
 
-    user_id = data['id']
+
     if not user_id:
-        user_id = createUser(login_session)
+        user_id = project.createUser(login_session)
     login_session['user_id'] = user_id
 
     output = ''

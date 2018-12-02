@@ -36,7 +36,7 @@ session = DBSession()
 
 def showRestaurants():
     restaurants = session.query(Restaurant).all()
-
+    #print (login_session['user_id'])
     if 'username' not in login_session:
         return render_template('publicrestaurants.html', restaurants=restaurants)
     else:
@@ -94,10 +94,13 @@ def deleteRestaurant(restaurant_id):
 
 def showMenu(restaurant_id):
     restaurant = session.query(Restaurant).filter_by(id=restaurant_id).one()
-    creator = getUserInfo(restaurant.user_id)
+    c = getUserInfo(restaurant.user_id)
+    creator = c.id if c else None
+
+
     items = session.query(MenuItem).filter_by(
         restaurant_id=restaurant_id).all()
-    if 'username' not in login_session or creator.id != login_session['user_id']:
+    if 'username' not in login_session or creator != login_session['user_id']:
         return render_template('publicmenu.html', items=items, restaurant=restaurant, creator=creator)
     else:
         return render_template('menu.html', items=items, restaurant=restaurant, creator=creator)
@@ -182,23 +185,27 @@ def menuItemJSON(restaurant_id, menu_id):
 
 # ----------------------  User Helper Functions ----------------------------#
 
+
+# ----------------------  User Helper Functions ----------------------------#
+
 def createUser(login_session):
     newUser = User(name=login_session['username'], email=login_session[
                    'email'], picture=login_session['picture'])
     session.add(newUser)
     session.commit()
-    user = session.query(User).filter_by(email=login_session['email']).one()
-    return user.id
+    #user = session.query(User).filter_by(id=login_session['user_id']).one()
+    return login_session['user_id']
 
 
 def getUserInfo(user_id):
-    user = session.query(User).filter_by(id=user_id).one()
-    return user
-
-
-def getUserID(email):
     try:
-        user = session.query(User).filter_by(email=email).one()
+        user = session.query(User).filter_by(id=user_id).one()
+        return user
+    except:
+        return None
+def getUserID(user_id):
+    try:
+        user = session.query(User).filter_by(id=user_id).one()
         return user.id
     except:
         return None
